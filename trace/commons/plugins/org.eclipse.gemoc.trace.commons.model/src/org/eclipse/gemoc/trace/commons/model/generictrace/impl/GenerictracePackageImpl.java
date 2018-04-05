@@ -35,6 +35,7 @@ import org.eclipse.gemoc.trace.commons.model.generictrace.ManyStringAttributeVal
 import org.eclipse.gemoc.trace.commons.model.generictrace.SingleReferenceValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.StringAttributeValue;
 
+import org.eclipse.gemoc.trace.commons.model.launchconfiguration.LaunchconfigurationPackage;
 import org.eclipse.gemoc.trace.commons.model.trace.TracePackage;
 
 import org.eclipse.emf.ecore.EAttribute;
@@ -250,7 +251,9 @@ public class GenerictracePackageImpl extends EPackageImpl implements Generictrac
 		isInited = true;
 
 		// Initialize simple dependencies
+		EcorePackage.eINSTANCE.eClass();
 		TracePackage.eINSTANCE.eClass();
+		LaunchconfigurationPackage.eINSTANCE.eClass();
 
 		// Create package meta-data objects
 		theGenerictracePackage.createPackageContents();

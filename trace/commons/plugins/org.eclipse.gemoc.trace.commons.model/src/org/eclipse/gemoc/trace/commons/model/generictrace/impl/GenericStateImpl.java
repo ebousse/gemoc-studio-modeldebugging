@@ -77,7 +77,7 @@ public class GenericStateImpl extends StateImpl<GenericStep, GenericValue> imple
 	@Override
 	public EList<GenericStep> getEndedSteps() {
 		if (endedSteps == null) {
-			endedSteps = new EObjectWithInverseResolvingEList<GenericStep>(GenericStep.class, this, GenerictracePackage.GENERIC_STATE__ENDED_STEPS, TracePackage.STEP__ENDING_STATE) { private static final long serialVersionUID = 1L; @Override public Class<?> getInverseFeatureClass() { return Step.class; } };
+			endedSteps = new EObjectWithInverseResolvingEList.ManyInverse<GenericStep>(GenericStep.class, this, GenerictracePackage.GENERIC_STATE__ENDED_STEPS, TracePackage.STEP__ENDING_STATE) { private static final long serialVersionUID = 1L; @Override public Class<?> getInverseFeatureClass() { return Step.class; } };
 		}
 		return endedSteps;
 	}

@@ -27,6 +27,7 @@ import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
 
+import org.eclipse.emf.ecore.util.EObjectResolvingEList;
 import org.eclipse.emf.ecore.util.EObjectWithInverseResolvingEList;
 import org.eclipse.emf.ecore.util.InternalEList;
 
@@ -39,6 +40,7 @@ import org.eclipse.emf.ecore.util.InternalEList;
  * </p>
  * <ul>
  *   <li>{@link org.eclipse.gemoc.trace.commons.model.trace.impl.ValueImpl#getStates <em>States</em>}</li>
+ *   <li>{@link org.eclipse.gemoc.trace.commons.model.trace.impl.ValueImpl#getNext <em>Next</em>}</li>
  * </ul>
  *
  * @generated
@@ -53,6 +55,16 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 	 * @ordered
 	 */
 	protected EList<StateSubType> states;
+
+	/**
+	 * The cached value of the '{@link #getNext() <em>Next</em>}' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @see #getNext()
+	 * @generated
+	 * @ordered
+	 */
+	protected EList<Value<?>> next;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -83,6 +95,18 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 			states = new EObjectWithInverseResolvingEList.ManyInverse<StateSubType>(State.class, this, TracePackage.VALUE__STATES, TracePackage.STATE__VALUES);
 		}
 		return states;
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
+	public EList<Value<?>> getNext() {
+		if (next == null) {
+			next = new EObjectResolvingEList<Value<?>>(Value.class, this, TracePackage.VALUE__NEXT);
+		}
+		return next;
 	}
 
 	/**
@@ -124,6 +148,8 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 		switch (featureID) {
 			case TracePackage.VALUE__STATES:
 				return getStates();
+			case TracePackage.VALUE__NEXT:
+				return getNext();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -141,6 +167,10 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 				getStates().clear();
 				getStates().addAll((Collection<? extends StateSubType>)newValue);
 				return;
+			case TracePackage.VALUE__NEXT:
+				getNext().clear();
+				getNext().addAll((Collection<? extends Value<?>>)newValue);
+				return;
 		}
 		super.eSet(featureID, newValue);
 	}
@@ -156,6 +186,9 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 			case TracePackage.VALUE__STATES:
 				getStates().clear();
 				return;
+			case TracePackage.VALUE__NEXT:
+				getNext().clear();
+				return;
 		}
 		super.eUnset(featureID);
 	}
@@ -170,6 +203,8 @@ public abstract class ValueImpl<StateSubType extends State<?, ?>> extends Minima
 		switch (featureID) {
 			case TracePackage.VALUE__STATES:
 				return states != null && !states.isEmpty();
+			case TracePackage.VALUE__NEXT:
+				return next != null && !next.isEmpty();
 		}
 		return super.eIsSet(featureID);
 	}

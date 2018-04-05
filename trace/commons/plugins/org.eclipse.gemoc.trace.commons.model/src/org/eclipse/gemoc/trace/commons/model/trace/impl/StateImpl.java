@@ -115,7 +115,7 @@ public abstract class StateImpl<StepSubType extends Step<?>, ValueSubType extend
 	 */
 	public EList<StepSubType> getEndedSteps() {
 		if (endedSteps == null) {
-			endedSteps = new EObjectWithInverseResolvingEList<StepSubType>(Step.class, this, TracePackage.STATE__ENDED_STEPS, TracePackage.STEP__ENDING_STATE);
+			endedSteps = new EObjectWithInverseResolvingEList.ManyInverse<StepSubType>(Step.class, this, TracePackage.STATE__ENDED_STEPS, TracePackage.STEP__ENDING_STATE);
 		}
 		return endedSteps;
 	}

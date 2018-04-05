@@ -354,7 +354,7 @@ public interface TracePackage extends EPackage {
 	int STEP__STARTING_STATE = 1;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -409,7 +409,7 @@ public interface TracePackage extends EPackage {
 	int BIG_STEP__STARTING_STATE = STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -473,7 +473,7 @@ public interface TracePackage extends EPackage {
 	int SMALL_STEP__STARTING_STATE = STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -528,7 +528,7 @@ public interface TracePackage extends EPackage {
 	int SEQUENTIAL_STEP__STARTING_STATE = BIG_STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -592,7 +592,7 @@ public interface TracePackage extends EPackage {
 	int PARALLEL_STEP__STARTING_STATE = BIG_STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -794,13 +794,22 @@ public interface TracePackage extends EPackage {
 	int VALUE__STATES = 0;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int VALUE__NEXT = 1;
+
+	/**
 	 * The number of structural features of the '<em>Value</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
 	 * @ordered
 	 */
-	int VALUE_FEATURE_COUNT = 1;
+	int VALUE_FEATURE_COUNT = 2;
 
 	/**
 	 * The number of operations of the '<em>Value</em>' class.
@@ -1055,10 +1064,10 @@ public interface TracePackage extends EPackage {
 	EReference getStep_StartingState();
 
 	/**
-	 * Returns the meta object for the reference '{@link org.eclipse.gemoc.trace.commons.model.trace.Step#getEndingState <em>Ending State</em>}'.
+	 * Returns the meta object for the reference list '{@link org.eclipse.gemoc.trace.commons.model.trace.Step#getEndingState <em>Ending State</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
-	 * @return the meta object for the reference '<em>Ending State</em>'.
+	 * @return the meta object for the reference list '<em>Ending State</em>'.
 	 * @see org.eclipse.gemoc.trace.commons.model.trace.Step#getEndingState()
 	 * @see #getStep()
 	 * @generated
@@ -1242,6 +1251,17 @@ public interface TracePackage extends EPackage {
 	 * @generated
 	 */
 	EReference getValue_States();
+
+	/**
+	 * Returns the meta object for the reference list '{@link org.eclipse.gemoc.trace.commons.model.trace.Value#getNext <em>Next</em>}'.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @return the meta object for the reference list '<em>Next</em>'.
+	 * @see org.eclipse.gemoc.trace.commons.model.trace.Value#getNext()
+	 * @see #getValue()
+	 * @generated
+	 */
+	EReference getValue_Next();
 
 	/**
 	 * Returns the meta object for class '{@link org.eclipse.gemoc.trace.commons.model.trace.State <em>State</em>}'.
@@ -1466,7 +1486,7 @@ public interface TracePackage extends EPackage {
 		EReference STEP__STARTING_STATE = eINSTANCE.getStep_StartingState();
 
 		/**
-		 * The meta object literal for the '<em><b>Ending State</b></em>' reference feature.
+		 * The meta object literal for the '<em><b>Ending State</b></em>' reference list feature.
 		 * <!-- begin-user-doc -->
 		 * <!-- end-user-doc -->
 		 * @generated
@@ -1624,6 +1644,14 @@ public interface TracePackage extends EPackage {
 		 * @generated
 		 */
 		EReference VALUE__STATES = eINSTANCE.getValue_States();
+
+		/**
+		 * The meta object literal for the '<em><b>Next</b></em>' reference list feature.
+		 * <!-- begin-user-doc -->
+		 * <!-- end-user-doc -->
+		 * @generated
+		 */
+		EReference VALUE__NEXT = eINSTANCE.getValue_Next();
 
 		/**
 		 * The meta object literal for the '{@link org.eclipse.gemoc.trace.commons.model.trace.impl.StateImpl <em>State</em>}' class.

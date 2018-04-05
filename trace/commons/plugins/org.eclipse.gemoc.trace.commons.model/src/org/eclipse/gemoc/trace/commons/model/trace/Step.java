@@ -12,6 +12,7 @@
  */
 package org.eclipse.gemoc.trace.commons.model.trace;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EObject;
 
 /**
@@ -88,7 +89,7 @@ public interface Step<StateSubType extends State<?, ?>> extends EObject {
 	void setStartingState(StateSubType value);
 
 	/**
-	 * Returns the value of the '<em><b>Ending State</b></em>' reference.
+	 * Returns the value of the '<em><b>Ending State</b></em>' reference list.
 	 * It is bidirectional and its opposite is '{@link org.eclipse.gemoc.trace.commons.model.trace.State#getEndedSteps <em>Ended Steps</em>}'.
 	 * <!-- begin-user-doc -->
 	 * <p>
@@ -96,23 +97,12 @@ public interface Step<StateSubType extends State<?, ?>> extends EObject {
 	 * there really should be more of a description here...
 	 * </p>
 	 * <!-- end-user-doc -->
-	 * @return the value of the '<em>Ending State</em>' reference.
-	 * @see #setEndingState(State)
+	 * @return the value of the '<em>Ending State</em>' reference list.
 	 * @see org.eclipse.gemoc.trace.commons.model.trace.TracePackage#getStep_EndingState()
 	 * @see org.eclipse.gemoc.trace.commons.model.trace.State#getEndedSteps
 	 * @model opposite="endedSteps"
 	 * @generated
 	 */
-	StateSubType getEndingState();
-
-	/**
-	 * Sets the value of the '{@link org.eclipse.gemoc.trace.commons.model.trace.Step#getEndingState <em>Ending State</em>}' reference.
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @param value the new value of the '<em>Ending State</em>' reference.
-	 * @see #getEndingState()
-	 * @generated
-	 */
-	void setEndingState(StateSubType value);
+	EList<StateSubType> getEndingState();
 
 } // Step

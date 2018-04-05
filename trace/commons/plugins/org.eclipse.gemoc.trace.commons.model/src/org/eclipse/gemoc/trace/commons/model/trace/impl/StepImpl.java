@@ -12,6 +12,7 @@
  */
 package org.eclipse.gemoc.trace.commons.model.trace.impl;
 
+import java.util.Collection;
 import org.eclipse.gemoc.trace.commons.model.trace.MSEOccurrence;
 import org.eclipse.gemoc.trace.commons.model.trace.State;
 import org.eclipse.gemoc.trace.commons.model.trace.Step;
@@ -20,11 +21,14 @@ import org.eclipse.gemoc.trace.commons.model.trace.TracePackage;
 import org.eclipse.emf.common.notify.Notification;
 import org.eclipse.emf.common.notify.NotificationChain;
 
+import org.eclipse.emf.common.util.EList;
 import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.InternalEObject;
 
 import org.eclipse.emf.ecore.impl.ENotificationImpl;
 import org.eclipse.emf.ecore.impl.MinimalEObjectImpl;
+import org.eclipse.emf.ecore.util.EObjectWithInverseResolvingEList;
+import org.eclipse.emf.ecore.util.InternalEList;
 
 /**
  * <!-- begin-user-doc -->
@@ -63,14 +67,14 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 	protected StateSubType startingState;
 
 	/**
-	 * The cached value of the '{@link #getEndingState() <em>Ending State</em>}' reference.
+	 * The cached value of the '{@link #getEndingState() <em>Ending State</em>}' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @see #getEndingState()
 	 * @generated
 	 * @ordered
 	 */
-	protected StateSubType endingState;
+	protected EList<StateSubType> endingState;
 
 	/**
 	 * <!-- begin-user-doc -->
@@ -201,59 +205,11 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 	 * @generated
 	 */
 	@SuppressWarnings("unchecked")
-	public StateSubType getEndingState() {
-		if (endingState != null && endingState.eIsProxy()) {
-			InternalEObject oldEndingState = (InternalEObject)endingState;
-			endingState = (StateSubType)eResolveProxy(oldEndingState);
-			if (endingState != oldEndingState) {
-				if (eNotificationRequired())
-					eNotify(new ENotificationImpl(this, Notification.RESOLVE, TracePackage.STEP__ENDING_STATE, oldEndingState, endingState));
-			}
+	public EList<StateSubType> getEndingState() {
+		if (endingState == null) {
+			endingState = new EObjectWithInverseResolvingEList.ManyInverse<StateSubType>(State.class, this, TracePackage.STEP__ENDING_STATE, TracePackage.STATE__ENDED_STEPS);
 		}
 		return endingState;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public StateSubType basicGetEndingState() {
-		return endingState;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public NotificationChain basicSetEndingState(StateSubType newEndingState, NotificationChain msgs) {
-		StateSubType oldEndingState = endingState;
-		endingState = newEndingState;
-		if (eNotificationRequired()) {
-			ENotificationImpl notification = new ENotificationImpl(this, Notification.SET, TracePackage.STEP__ENDING_STATE, oldEndingState, newEndingState);
-			if (msgs == null) msgs = notification; else msgs.add(notification);
-		}
-		return msgs;
-	}
-
-	/**
-	 * <!-- begin-user-doc -->
-	 * <!-- end-user-doc -->
-	 * @generated
-	 */
-	public void setEndingState(StateSubType newEndingState) {
-		if (newEndingState != endingState) {
-			NotificationChain msgs = null;
-			if (endingState != null)
-				msgs = ((InternalEObject)endingState).eInverseRemove(this, TracePackage.STATE__ENDED_STEPS, State.class, msgs);
-			if (newEndingState != null)
-				msgs = ((InternalEObject)newEndingState).eInverseAdd(this, TracePackage.STATE__ENDED_STEPS, State.class, msgs);
-			msgs = basicSetEndingState(newEndingState, msgs);
-			if (msgs != null) msgs.dispatch();
-		}
-		else if (eNotificationRequired())
-			eNotify(new ENotificationImpl(this, Notification.SET, TracePackage.STEP__ENDING_STATE, newEndingState, newEndingState));
 	}
 
 	/**
@@ -270,9 +226,7 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 					msgs = ((InternalEObject)startingState).eInverseRemove(this, TracePackage.STATE__STARTED_STEPS, State.class, msgs);
 				return basicSetStartingState((StateSubType)otherEnd, msgs);
 			case TracePackage.STEP__ENDING_STATE:
-				if (endingState != null)
-					msgs = ((InternalEObject)endingState).eInverseRemove(this, TracePackage.STATE__ENDED_STEPS, State.class, msgs);
-				return basicSetEndingState((StateSubType)otherEnd, msgs);
+				return ((InternalEList<InternalEObject>)(InternalEList<?>)getEndingState()).basicAdd(otherEnd, msgs);
 		}
 		return super.eInverseAdd(otherEnd, featureID, msgs);
 	}
@@ -290,7 +244,7 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 			case TracePackage.STEP__STARTING_STATE:
 				return basicSetStartingState(null, msgs);
 			case TracePackage.STEP__ENDING_STATE:
-				return basicSetEndingState(null, msgs);
+				return ((InternalEList<?>)getEndingState()).basicRemove(otherEnd, msgs);
 		}
 		return super.eInverseRemove(otherEnd, featureID, msgs);
 	}
@@ -309,8 +263,7 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 				if (resolve) return getStartingState();
 				return basicGetStartingState();
 			case TracePackage.STEP__ENDING_STATE:
-				if (resolve) return getEndingState();
-				return basicGetEndingState();
+				return getEndingState();
 		}
 		return super.eGet(featureID, resolve, coreType);
 	}
@@ -331,7 +284,8 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 				setStartingState((StateSubType)newValue);
 				return;
 			case TracePackage.STEP__ENDING_STATE:
-				setEndingState((StateSubType)newValue);
+				getEndingState().clear();
+				getEndingState().addAll((Collection<? extends StateSubType>)newValue);
 				return;
 		}
 		super.eSet(featureID, newValue);
@@ -352,7 +306,7 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 				setStartingState((StateSubType)null);
 				return;
 			case TracePackage.STEP__ENDING_STATE:
-				setEndingState((StateSubType)null);
+				getEndingState().clear();
 				return;
 		}
 		super.eUnset(featureID);
@@ -371,7 +325,7 @@ public abstract class StepImpl<StateSubType extends State<?, ?>> extends Minimal
 			case TracePackage.STEP__STARTING_STATE:
 				return startingState != null;
 			case TracePackage.STEP__ENDING_STATE:
-				return endingState != null;
+				return endingState != null && !endingState.isEmpty();
 		}
 		return super.eIsSet(featureID);
 	}

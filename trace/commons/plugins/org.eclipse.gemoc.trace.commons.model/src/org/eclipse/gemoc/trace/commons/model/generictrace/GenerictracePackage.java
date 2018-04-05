@@ -99,7 +99,7 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_STEP__STARTING_STATE = TracePackage.STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -154,7 +154,7 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_SEQUENTIAL_STEP__STARTING_STATE = GENERIC_STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -218,7 +218,7 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_PARALLEL_STEP__STARTING_STATE = GENERIC_STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -282,7 +282,7 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_SMALL_STEP__STARTING_STATE = GENERIC_STEP__STARTING_STATE;
 
 	/**
-	 * The feature id for the '<em><b>Ending State</b></em>' reference.
+	 * The feature id for the '<em><b>Ending State</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
 	 * @generated
@@ -328,6 +328,15 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_VALUE__STATES = TracePackage.VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int GENERIC_VALUE__NEXT = TracePackage.VALUE__NEXT;
+
+	/**
 	 * The number of structural features of the '<em>Generic Value</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -363,6 +372,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int GENERIC_REFERENCE_VALUE__STATES = GENERIC_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int GENERIC_REFERENCE_VALUE__NEXT = GENERIC_VALUE__NEXT;
 
 	/**
 	 * The number of structural features of the '<em>Generic Reference Value</em>' class.
@@ -631,6 +649,15 @@ public interface GenerictracePackage extends EPackage {
 	int GENERIC_ATTRIBUTE_VALUE__STATES = GENERIC_VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int GENERIC_ATTRIBUTE_VALUE__NEXT = GENERIC_VALUE__NEXT;
+
+	/**
 	 * The number of structural features of the '<em>Generic Attribute Value</em>' class.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -666,6 +693,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int BOOLEAN_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int BOOLEAN_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
 
 	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute.
@@ -714,6 +750,15 @@ public interface GenerictracePackage extends EPackage {
 	int INTEGER_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int INTEGER_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
+
+	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -758,6 +803,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int STRING_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int STRING_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
 
 	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute.
@@ -806,6 +860,15 @@ public interface GenerictracePackage extends EPackage {
 	int MANY_BOOLEAN_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MANY_BOOLEAN_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
+
+	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -850,6 +913,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int MANY_INTEGER_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MANY_INTEGER_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
 
 	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute list.
@@ -898,6 +970,15 @@ public interface GenerictracePackage extends EPackage {
 	int MANY_STRING_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MANY_STRING_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
+
+	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -942,6 +1023,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int SINGLE_REFERENCE_VALUE__STATES = GENERIC_REFERENCE_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int SINGLE_REFERENCE_VALUE__NEXT = GENERIC_REFERENCE_VALUE__NEXT;
 
 	/**
 	 * The feature id for the '<em><b>Reference Value</b></em>' reference.
@@ -990,6 +1080,15 @@ public interface GenerictracePackage extends EPackage {
 	int MANY_REFERENCE_VALUE__STATES = GENERIC_REFERENCE_VALUE__STATES;
 
 	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int MANY_REFERENCE_VALUE__NEXT = GENERIC_REFERENCE_VALUE__NEXT;
+
+	/**
 	 * The feature id for the '<em><b>Reference Values</b></em>' reference list.
 	 * <!-- begin-user-doc -->
 	 * <!-- end-user-doc -->
@@ -1034,6 +1133,15 @@ public interface GenerictracePackage extends EPackage {
 	 * @ordered
 	 */
 	int INTEGER_OBJECT_ATTRIBUTE_VALUE__STATES = GENERIC_ATTRIBUTE_VALUE__STATES;
+
+	/**
+	 * The feature id for the '<em><b>Next</b></em>' reference list.
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 * @ordered
+	 */
+	int INTEGER_OBJECT_ATTRIBUTE_VALUE__NEXT = GENERIC_ATTRIBUTE_VALUE__NEXT;
 
 	/**
 	 * The feature id for the '<em><b>Attribute Value</b></em>' attribute.

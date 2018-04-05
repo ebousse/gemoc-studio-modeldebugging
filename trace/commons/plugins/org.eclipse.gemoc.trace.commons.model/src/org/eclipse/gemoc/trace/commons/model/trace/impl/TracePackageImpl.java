@@ -529,6 +529,15 @@ public class TracePackageImpl extends EPackageImpl implements TracePackage {
 	 * <!-- end-user-doc -->
 	 * @generated
 	 */
+	public EReference getValue_Next() {
+		return (EReference)valueEClass.getEStructuralFeatures().get(1);
+	}
+
+	/**
+	 * <!-- begin-user-doc -->
+	 * <!-- end-user-doc -->
+	 * @generated
+	 */
 	public EClass getState() {
 		return stateEClass;
 	}
@@ -644,6 +653,7 @@ public class TracePackageImpl extends EPackageImpl implements TracePackage {
 
 		valueEClass = createEClass(VALUE);
 		createEReference(valueEClass, VALUE__STATES);
+		createEReference(valueEClass, VALUE__NEXT);
 
 		stateEClass = createEClass(STATE);
 		createEReference(stateEClass, STATE__STARTED_STEPS);
@@ -831,7 +841,7 @@ public class TracePackageImpl extends EPackageImpl implements TracePackage {
 		g1 = createEGenericType(stepEClass_StateSubType);
 		initEReference(getStep_StartingState(), g1, this.getState_StartedSteps(), "startingState", null, 1, 1, Step.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 		g1 = createEGenericType(stepEClass_StateSubType);
-		initEReference(getStep_EndingState(), g1, this.getState_EndedSteps(), "endingState", null, 0, 1, Step.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		initEReference(getStep_EndingState(), g1, this.getState_EndedSteps(), "endingState", null, 0, -1, Step.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(bigStepEClass, BigStep.class, "BigStep", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		g1 = createEGenericType(bigStepEClass_StepSubtype);
@@ -867,6 +877,10 @@ public class TracePackageImpl extends EPackageImpl implements TracePackage {
 		initEClass(valueEClass, Value.class, "Value", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		g1 = createEGenericType(valueEClass_StateSubType);
 		initEReference(getValue_States(), g1, this.getState_Values(), "states", null, 0, -1, Value.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
+		g1 = createEGenericType(this.getValue());
+		g2 = createEGenericType();
+		g1.getETypeArguments().add(g2);
+		initEReference(getValue_Next(), g1, null, "next", null, 0, -1, Value.class, !IS_TRANSIENT, !IS_VOLATILE, IS_CHANGEABLE, !IS_COMPOSITE, IS_RESOLVE_PROXIES, !IS_UNSETTABLE, IS_UNIQUE, !IS_DERIVED, IS_ORDERED);
 
 		initEClass(stateEClass, State.class, "State", IS_ABSTRACT, !IS_INTERFACE, IS_GENERATED_INSTANCE_CLASS);
 		g1 = createEGenericType(stateEClass_StepSubType);
