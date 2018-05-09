@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ecore:EPackage xmi:version="2.0" xmlns:xmi="http://www.omg.org/XMI" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+    xmlns:ecore="http://www.eclipse.org/emf/2002/Ecore" name="newTrace" nsURI="newTrace" nsPrefix="newTrace">
+  <eClassifiers xsi:type="ecore:EClass" name="Trace">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="stepMarks" lowerBound="1"
+        upperBound="-1" eType="#//StepMark" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="states" lowerBound="1"
+        upperBound="-1" eType="#//State" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="initialState" lowerBound="1"
+        eType="#//State"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="initialSteps" lowerBound="1"
+        upperBound="-1" eType="#//StepStart"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="tracedObjects" lowerBound="1"
+        upperBound="-1" eType="#//TracedObject" containment="true"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="pathsEnds" lowerBound="1"
+        upperBound="-1" eType="#//StepMark"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="State">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="stepMarks" lowerBound="1"
+        upperBound="-1" eType="#//StepMark" eOpposite="#//StepMark/state"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="values" upperBound="-1"
+        eType="#//Value"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="next" upperBound="-1" eType="#//State"
+        derived="true" eOpposite="#//State/previous"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="previous" eType="#//State"
+        derived="true" eOpposite="#//State/next"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StepStart" eSuperTypes="#//StepMark">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="ends" upperBound="-1" eType="#//StepEnd"
+        eOpposite="#//StepEnd/start"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StepEnd" eSuperTypes="#//StepMark">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="start" lowerBound="1" eType="#//StepStart"
+        eOpposite="#//StepStart/ends"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="StepMark" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="next" upperBound="-1" eType="#//StepMark"
+        eOpposite="#//StepMark/previous"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="previous" eType="#//StepMark"
+        eOpposite="#//StepMark/next"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="state" lowerBound="1" eType="#//State"
+        eOpposite="#//State/stepMarks"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Value" abstract="true">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="next" upperBound="-1" eType="#//Value"
+        eOpposite="#//Value/previous"/>
+    <eStructuralFeatures xsi:type="ecore:EReference" name="previous" eType="#//Value"
+        eOpposite="#//Value/next"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="Dimension">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="values" lowerBound="1"
+        upperBound="-1" eType="#//Value" containment="true"/>
+  </eClassifiers>
+  <eClassifiers xsi:type="ecore:EClass" name="TracedObject">
+    <eStructuralFeatures xsi:type="ecore:EReference" name="dimensions" upperBound="-1"
+        eType="#//Dimension" containment="true"/>
+  </eClassifiers>
+</ecore:EPackage>
