@@ -21,13 +21,14 @@ import java.util.Map
 import org.eclipse.emf.ecore.EClass
 import org.eclipse.emf.ecore.EObject
 import org.eclipse.emf.ecore.impl.EObjectImpl
-import org.eclipse.gemoc.executionframework.engine.commons.MelangeHelper
+import org.eclipse.gemoc.executionframework.engine.commons.DslHelper
+import org.eclipse.gemoc.executionframework.engine.commons.K3DslHelper
 
 class IntrospectiveMutableFieldExtractor implements IMutableFieldExtractor {
 
-	private String languageName
-	private Map<EObject, List<MutableField>> eObjects = new HashMap
-	private Map<EClass, List<Pair<Class<?>, Class<?>>>> aspectClasses = new HashMap
+	String languageName
+	Map<EObject, List<MutableField>> eObjects = new HashMap
+	Map<EClass, List<Pair<Class<?>, Class<?>>>> aspectClasses = new HashMap
 
 	new(String languageName) {
 		this.languageName = languageName
@@ -130,7 +131,7 @@ class IntrospectiveMutableFieldExtractor implements IMutableFieldExtractor {
 					classes.forEach [ i, l |
 						l.forEach [ c |
 							try {
-								val properties = MelangeHelper.getMelangeBundle(languageName).loadClass(
+								val properties = DslHelper.getDslBundle(languageName).loadClass(
 									c.name + i.simpleName + "AspectProperties")
 								val pair = new Pair(c, properties)
 								list.add(pair)
@@ -232,10 +233,10 @@ class IntrospectiveMutableFieldExtractor implements IMutableFieldExtractor {
 		val List<Class<?>> allPossibleInterfaces = getInterfacesOfEObject(target)
 
 		val Map<Class<?>, List<Class<?>>> res = new HashMap
-		val allAspects = MelangeHelper.getAspects(languageName)
+		val allAspects = K3DslHelper.getAspects(languageName)
 		allPossibleInterfaces.forEach [ i |
 			val appliedAspects = allAspects.filter [ asp |
-				MelangeHelper.getTarget(asp) == i
+				K3DslHelper.getTarget(asp) == i
 			]
 			res.put(i, appliedAspects.toList)
 		]

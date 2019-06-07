@@ -24,27 +24,14 @@ import org.eclipse.emf.ecore.EStructuralFeature
 import org.eclipse.emf.ecore.resource.Resource
 import org.eclipse.emf.ecore.util.EContentAdapter
 
-/**
- * This model listener gathers EMF notifications, and computes when asked a
- * set of ModelChange objects to reflect what happened in a more abstract
- * and concise way.
- * 
- * For instance, if a field changed multiple times in between two queries to
- * the model listener, a single ModelChange object will be computed to reflect that change,
- * instead of a list of many EMF Notifications.
- * 
- * A ModelChange can be a new/removed object in the model, or a change in a field.
- * See associated class.
- * 
- */
-public class BatchModelChangeListener {
+ class BatchModelChangeListener {
 
-	private val EContentAdapter adapter;
-	private val Map<Object, List<Notification>> changes = new HashMap
-	private val Set<Object> registeredObservers = new HashSet
-	private val Set<Resource> observedResources = new HashSet<Resource>
+	val EContentAdapter adapter;
+	val Map<Object, List<Notification>> changes = new HashMap
+	val Set<Object> registeredObservers = new HashSet
+	val Set<Resource> observedResources = new HashSet<Resource>
 
-	public new(Set<Resource> resources) {
+	 new(Set<Resource> resources) {
 		/*
 		 * We create an adapter that stores and sort all the notifications for each object and field.
 		 * This avoids us to sort everything afterwards.
@@ -61,7 +48,7 @@ public class BatchModelChangeListener {
 		observedResources.addAll(resources)
 
 		observedResources.forEach [ r |
-			if (r != null) {
+			if (r !== null) {
 				r.eAdapters().add(adapter);
 			}
 		]
@@ -145,16 +132,16 @@ public class BatchModelChangeListener {
 
 							// Register potentially new or removed object
 							if ((feature as EReference).containment) {
-								if (previousValue != null && previousValue instanceof EObject)
+								if (previousValue !== null && previousValue instanceof EObject)
 									addToRemovedObjects(eventuallyRemoved, removedObjects, newObjects,
 										previousValue as EObject)
-								if (newValue != null && newValue instanceof EObject)
+								if (newValue !== null && newValue instanceof EObject)
 									addToNewObjects(eventuallyRemoved, removedObjects, newObjects, newValue as EObject)
 							}
 						}
 					} // Case data types: we compare values
-					else if (if (previousValue == null) {
-						newValue != null
+					else if (if (previousValue === null) {
+						newValue !== null
 					} else {
 						!previousValue.equals(newValue)
 					}) {
@@ -221,7 +208,7 @@ public class BatchModelChangeListener {
 	private static def void addToNewObjects(Collection<EObject> eventuallyRemoved, Collection<EObject> removedObjects,
 		Collection<EObject> newObjects, EObject object) {
 		eventuallyRemoved.remove(object)
-		if (object != null) {
+		if (object !== null) {
 			val hasMoved = removedObjects.remove(object)
 			if (!hasMoved) {
 				newObjects.add(object)
@@ -233,7 +220,7 @@ public class BatchModelChangeListener {
 	private static def void addToRemovedObjects(Collection<EObject> eventuallyRemoved,
 		Collection<EObject> removedObjects, Collection<EObject> newObjects, EObject object) {
 		eventuallyRemoved.add(object)
-		if (object != null) {
+		if (object !== null) {
 			val hasMoved = newObjects.remove(object)
 			if (!hasMoved)
 				removedObjects.add(object)
@@ -257,8 +244,8 @@ public class BatchModelChangeListener {
 		}
 	}
 
-	public def void cleanUp() {
-		for (r : observedResources.filter[r|r != null]) {
+	def void cleanUp() {
+		for (r : observedResources.filter[r|r !== null]) {
 			r.eAdapters().remove(adapter);
 		}
 	}

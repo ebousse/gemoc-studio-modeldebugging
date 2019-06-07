@@ -10,32 +10,30 @@
  *******************************************************************************/
 package org.eclipse.gemoc.trace.gemoc.traceaddon;
 
+import java.util.ArrayList;
 import java.util.Deque;
 import java.util.HashSet;
 import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.TreeIterator;
 import org.eclipse.emf.common.util.URI;
 import org.eclipse.emf.ecore.EAttribute;
-import org.eclipse.emf.ecore.EClass;
 import org.eclipse.emf.ecore.EClassifier;
 import org.eclipse.emf.ecore.EObject;
 import org.eclipse.emf.ecore.EReference;
 import org.eclipse.emf.ecore.EStructuralFeature;
 import org.eclipse.emf.ecore.EcorePackage;
 import org.eclipse.emf.ecore.resource.Resource;
-import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.ModelChange;
-import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.NewObjectModelChange;
-import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.NonCollectionFieldModelChange;
-import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.PotentialCollectionFieldModelChange;
-import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.RemovedObjectModelChange;
-import org.eclipse.gemoc.xdsmlframework.commons.DynamicAnnotationHelper;
-
+import org.eclipse.gemoc.executionframework.debugger.IDynamicPartAccessor;
+import org.eclipse.gemoc.executionframework.debugger.MutableField;
 import org.eclipse.gemoc.trace.commons.model.generictrace.BooleanAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.DoubleAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.DoubleObjectAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericDimension;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericSequentialStep;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericSmallStep;
@@ -46,6 +44,8 @@ import org.eclipse.gemoc.trace.commons.model.generictrace.GenericValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenerictraceFactory;
 import org.eclipse.gemoc.trace.commons.model.generictrace.IntegerAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.IntegerObjectAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.LongAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.LongObjectAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.ManyReferenceValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.SingleReferenceValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.StringAttributeValue;
@@ -55,7 +55,13 @@ import org.eclipse.gemoc.trace.commons.model.trace.MSEModel;
 import org.eclipse.gemoc.trace.commons.model.trace.Step;
 import org.eclipse.gemoc.trace.commons.model.trace.Trace;
 import org.eclipse.gemoc.trace.commons.model.trace.TracedObject;
+import org.eclipse.gemoc.trace.gemoc.Activator;
 import org.eclipse.gemoc.trace.gemoc.api.ITraceConstructor;
+import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.ModelChange;
+import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.NewObjectModelChange;
+import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.NonCollectionFieldModelChange;
+import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.PotentialCollectionFieldModelChange;
+import org.eclipse.gemoc.xdsmlframework.api.engine_addon.modelchangelistener.RemovedObjectModelChange;
 
 public class GenericTraceConstructor implements ITraceConstructor {
 
@@ -67,10 +73,13 @@ public class GenericTraceConstructor implements ITraceConstructor {
 	private final Deque<GenericSequentialStep> context = new LinkedList<>();
 	private GenericState lastState;
 	
-	public GenericTraceConstructor(Resource executedModel, Resource traceResource, Map<EObject, TracedObject<?>> exeToTraced) {
+	IDynamicPartAccessor dynamicPartAccessor;
+	
+	public GenericTraceConstructor(Resource executedModel, Resource traceResource, Map<EObject, TracedObject<?>> exeToTraced, IDynamicPartAccessor dynamicPartAccessor) {
 		this.executedModel = executedModel;
 		this.traceResource = traceResource;
 		this.exeToTraced = exeToTraced;
+		this.dynamicPartAccessor = dynamicPartAccessor;
 	}
 	
 	private Set<Resource> getAllExecutedModelResources() {
@@ -82,11 +91,11 @@ public class GenericTraceConstructor implements ITraceConstructor {
 	}
 
 	private boolean addNewObjectToStateIfDynamic(EObject object, GenericState state) {
-		final EClass c = object.eClass();
-		final List<EStructuralFeature> mutableProperties = c.getEAllStructuralFeatures().stream()
-				.filter(p -> DynamicAnnotationHelper.isDynamic(p))
+		List<MutableField> fields = dynamicPartAccessor.extractMutableField(object);
+		final List<EStructuralFeature> mutableProperties = fields.stream()
+				.map(f -> f.getMutableProperty())
 				.collect(Collectors.toList());
-		if (DynamicAnnotationHelper.isDynamic(object.eClass()) || !mutableProperties.isEmpty()) {
+		if (dynamicPartAccessor.isDynamic(object) || !fields.isEmpty()) {
 			return addNewObjectToState(object, mutableProperties, lastState);
 		}
 		return true;
@@ -95,42 +104,98 @@ public class GenericTraceConstructor implements ITraceConstructor {
 	@SuppressWarnings("unchecked")
 	private GenericValue getGenericValue(EObject object, EStructuralFeature mutableProperty, GenericState state) {
 		GenericValue result = null;
+		List<MutableField> fields = dynamicPartAccessor.extractMutableField(object);
+		Optional<MutableField> dynamicProperty = fields.stream().filter(field -> field.getMutableProperty().getName().equals(mutableProperty.getName())).findFirst();
 		if (mutableProperty instanceof EAttribute) {
 			final EClassifier eType = mutableProperty.getEType();
 			if (eType == EcorePackage.Literals.EINT) {
 				final IntegerAttributeValue value = GenerictraceFactory.eINSTANCE.createIntegerAttributeValue();
-				value.setAttributeValue((Integer) object.eGet(mutableProperty));
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Integer)dynamicProperty.get().getValue());
+				}
 				result = value;
 			} else if (eType == EcorePackage.Literals.EBOOLEAN) {
 				final BooleanAttributeValue value = GenerictraceFactory.eINSTANCE.createBooleanAttributeValue();
-				value.setAttributeValue((Boolean) object.eGet(mutableProperty));
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Boolean)dynamicProperty.get().getValue());
+				}
 				result = value;
 			} else if (eType == EcorePackage.Literals.ESTRING) {
 				final StringAttributeValue value = GenerictraceFactory.eINSTANCE.createStringAttributeValue();
-				value.setAttributeValue((String) object.eGet(mutableProperty));
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((String)dynamicProperty.get().getValue());
+				}
 				result = value;
 			} else  if (eType == EcorePackage.Literals.EINTEGER_OBJECT) {
 				final IntegerObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createIntegerObjectAttributeValue();
-				value.setAttributeValue((Integer) object.eGet(mutableProperty));
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Integer)dynamicProperty.get().getValue());
+				}
 				result = value;
+			} else if (eType == EcorePackage.Literals.EDOUBLE) {
+				final DoubleAttributeValue value = GenerictraceFactory.eINSTANCE.createDoubleAttributeValue();
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Double)dynamicProperty.get().getValue());
+				}
+				result = value;
+			} else if (eType == EcorePackage.Literals.EDOUBLE_OBJECT) {
+				final DoubleObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createDoubleObjectAttributeValue();
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Double)dynamicProperty.get().getValue());
+				}
+				result = value;
+			} else if (eType == EcorePackage.Literals.ELONG) {
+				final LongAttributeValue value = GenerictraceFactory.eINSTANCE.createLongAttributeValue();
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Long)dynamicProperty.get().getValue());
+				}
+				result = value;
+			} else if (eType == EcorePackage.Literals.ELONG_OBJECT) {
+				final LongObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createLongObjectAttributeValue();
+				if(dynamicProperty.isPresent()) {
+					value.setAttributeValue((Long)dynamicProperty.get().getValue());
+				}
+				result = value;
+			} else {
+				Activator.error("eType "+eType+" not supported yet (used by "+mutableProperty.getName()+" of "+object.eClass()+ ");\n "
+						+ "Please use another type in your RTD or consider to contribute to GEMOC framework", 
+						new java.lang.UnsupportedOperationException("eType "+eType+" not supported yet (used by "+mutableProperty.getName()+" of "+object.eClass()+ ")"));
 			}
 		} else if (mutableProperty instanceof EReference) {
 			if (mutableProperty.isMany()) {
-				final List<EObject> modelElements = (List<EObject>) object.eGet(mutableProperty);
+				List<EObject> modelElements = new ArrayList<>();
+				if(dynamicProperty.isPresent()) {
+					modelElements = (List<EObject>) dynamicProperty.get().getValue();
+				}
 				final ManyReferenceValue value = GenerictraceFactory.eINSTANCE.createManyReferenceValue();
 				for (EObject o : modelElements) {
-					if (DynamicAnnotationHelper.isDynamic(o.eClass())) {
-						value.getReferenceValues().add(exeToTraced.get(o));
+					if (dynamicPartAccessor.isDynamic(o) || !fields.isEmpty()) {
+						final TracedObject<?> tracedObj = exeToTraced.get(o);
+						if(tracedObj == null) {
+						Activator.error("Cannot find traced object for "+o+" (used by "+mutableProperty.getName()+" of "+object.eClass()+ ");\n"
+								+ "Did you correctly declare it as Runtime Data ?", 
+								new Exception("Cannot find traced object for "+o+" (used by "+mutableProperty.getName()+" of "+object.eClass()+ ")"));
+						}
+						value.getReferenceValues().add(tracedObj);
 					} else {
 						value.getReferenceValues().add(o);
 					}
 				}
 				result = value;
 			} else {
-				final EObject o = (EObject) object.eGet(mutableProperty);
+				EObject o = null;
+				if(dynamicProperty.isPresent()) {
+					o = (EObject) dynamicProperty.get().getValue();
+				}
 				final SingleReferenceValue value = GenerictraceFactory.eINSTANCE.createSingleReferenceValue();
-				if (o != null && DynamicAnnotationHelper.isDynamic(o.eClass())) {
-					value.setReferenceValue(exeToTraced.get(o));
+				if (o != null  && dynamicPartAccessor.isDynamic(o)) {
+					final TracedObject<?> tracedObj = exeToTraced.get(o);
+					if(tracedObj == null) {
+					Activator.error("Cannot find traced object for "+o+" (used by "+mutableProperty.getName()+" of "+object.eClass()+ ");\n"
+							+ "Did you correctly declare it as Runtime Data ?", 
+							new Exception("Cannot find traced object for "+o+" (used by "+mutableProperty.getName()+" of "+object.eClass()+ ")"));
+					} 
+					value.setReferenceValue(tracedObj);
 				} else {
 					value.setReferenceValue(o);
 				}
@@ -144,12 +209,14 @@ public class GenericTraceConstructor implements ITraceConstructor {
 	private boolean addNewObjectToState(EObject object, List<EStructuralFeature> mutableProperties, GenericState state) {
 		boolean added = false;
 		if (!exeToTraced.containsKey(object)) {
+			List<MutableField> fields = dynamicPartAccessor.extractMutableField(object);
 			final GenericTracedObject tracedObject = GenerictraceFactory.eINSTANCE.createGenericTracedObject();
-			if (!DynamicAnnotationHelper.isDynamic(object.eClass())) {
+			if (dynamicPartAccessor.isDynamic(object) || !fields.isEmpty()) {
 				tracedObject.setOriginalObject(object);
 			}
 			exeToTraced.put(object, tracedObject);
 			for (EStructuralFeature mutableProperty : mutableProperties) {
+				Optional<MutableField> dynamicProperty = fields.stream().filter(field -> field.getMutableProperty().getName().equals(mutableProperty.getName())).findFirst();
 				final GenericDimension dimension = GenerictraceFactory.eINSTANCE.createGenericDimension();
 				GenericValue firstValue = null;
 				dimension.setDynamicProperty(mutableProperty);
@@ -158,32 +225,88 @@ public class GenericTraceConstructor implements ITraceConstructor {
 					final EClassifier eType = mutableProperty.getEType();
 					if (eType == EcorePackage.Literals.EINT) {
 						final IntegerAttributeValue value = GenerictraceFactory.eINSTANCE.createIntegerAttributeValue();
-						value.setAttributeValue((Integer) object.eGet(mutableProperty));
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Integer)dynamicProperty.get().getValue());
+						}
 						firstValue = value;
 					} else if (eType == EcorePackage.Literals.EBOOLEAN) {
 						final BooleanAttributeValue value = GenerictraceFactory.eINSTANCE.createBooleanAttributeValue();
-						value.setAttributeValue((Boolean) object.eGet(mutableProperty));
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Boolean)dynamicProperty.get().getValue());
+						}
 						firstValue = value;
 					} else if (eType == EcorePackage.Literals.ESTRING) {
 						final StringAttributeValue value = GenerictraceFactory.eINSTANCE.createStringAttributeValue();
-						value.setAttributeValue((String) object.eGet(mutableProperty));
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((String)dynamicProperty.get().getValue());
+						}
 						firstValue = value;
-					}
-				} else if (mutableProperty instanceof EReference) {
-					if (mutableProperty.isMany()) {
-						final List<EObject> modelElements = (List<EObject>) object.eGet(mutableProperty);
-						final ManyReferenceValue value = GenerictraceFactory.eINSTANCE.createManyReferenceValue();
-						for (EObject o : modelElements) {
-							addNewObjectToStateIfDynamic(o, state);
-							value.getReferenceValues().add(exeToTraced.get(o));
+					} else if (eType == EcorePackage.Literals.EDOUBLE) {
+						final DoubleAttributeValue value = GenerictraceFactory.eINSTANCE.createDoubleAttributeValue();
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Double)dynamicProperty.get().getValue());
+						}
+						firstValue = value; 
+					} else if (eType == EcorePackage.Literals.ELONG) {
+						final LongAttributeValue value = GenerictraceFactory.eINSTANCE.createLongAttributeValue();
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Long)dynamicProperty.get().getValue());
+						}
+						firstValue = value;
+					} else if (eType == EcorePackage.Literals.EINTEGER_OBJECT) {
+						final IntegerObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createIntegerObjectAttributeValue();
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Integer)dynamicProperty.get().getValue());
+						}
+						firstValue = value;
+					} else if (eType == EcorePackage.Literals.EDOUBLE_OBJECT) {
+						final DoubleObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createDoubleObjectAttributeValue();
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Double)dynamicProperty.get().getValue());
+						}
+						firstValue = value;
+					} else if (eType == EcorePackage.Literals.ELONG_OBJECT) {
+						final LongObjectAttributeValue value = GenerictraceFactory.eINSTANCE.createLongObjectAttributeValue();
+						if(dynamicProperty.isPresent()) {
+							value.setAttributeValue((Long)dynamicProperty.get().getValue());
 						}
 						firstValue = value;
 					} else {
-						final EObject o = (EObject) object.eGet(mutableProperty);
+						Activator.error("eType "+eType+" not supported yet (used by "+mutableProperty.getName()+" of "+object.eClass()+ "); "
+								+ "Please use another type in your RTD or consider to contribute to GEMOC framework", 
+								new java.lang.UnsupportedOperationException("eType "+eType+" not supported yet (used by "+mutableProperty.getName()+" of "+object.eClass()+ ")"));
+					}
+				} else if (mutableProperty instanceof EReference) {
+					if (mutableProperty.isMany()) {
+						List<EObject> modelElements = new ArrayList<>();
+						if(dynamicProperty.isPresent()) {
+							modelElements = (List<EObject>) dynamicProperty.get().getValue();
+						}
+						final ManyReferenceValue value = GenerictraceFactory.eINSTANCE.createManyReferenceValue();
+						for (EObject o : modelElements) {
+							addNewObjectToStateIfDynamic(o, state);
+							final TracedObject<?> tracedObj = exeToTraced.get(o);
+							if(tracedObj != null) {
+								value.getReferenceValues().add(tracedObj);
+							} else {
+								value.getReferenceValues().add(o);
+							}
+						}
+						firstValue = value;
+					} else {
+						EObject o = null;
+						if(dynamicProperty.isPresent()) {
+							o = (EObject) dynamicProperty.get().getValue();
+						}
 						if (o != null) {
 							addNewObjectToStateIfDynamic(o, state);
 							final SingleReferenceValue value = GenerictraceFactory.eINSTANCE.createSingleReferenceValue();
-							value.setReferenceValue(exeToTraced.get(o));
+							final TracedObject<?> tracedObj = exeToTraced.get(o);
+							if(tracedObj != null) {
+								value.setReferenceValue(tracedObj);
+							} else {
+								value.setReferenceValue(o);
+							}
 							firstValue = value;
 						}
 					}
@@ -237,6 +360,7 @@ public class GenericTraceConstructor implements ITraceConstructor {
 			GenericState newState = copyState(lastState);
 			for (ModelChange modelChange : modelChanges) {
 				EObject o = modelChange.getChangedObject();
+				List<MutableField> fields = dynamicPartAccessor.extractMutableField(o);
 				// We only look at constructable objects that have mutable fields
 				// Here we have nothing to rollback, just a new object to add
 				if (modelChange instanceof NewObjectModelChange) {
@@ -256,16 +380,19 @@ public class GenericTraceConstructor implements ITraceConstructor {
 				else if (modelChange instanceof NonCollectionFieldModelChange) {
 					stateChanged = true;
 					EStructuralFeature p = ((NonCollectionFieldModelChange) modelChange).getChangedField();
+					Optional<MutableField> dynamicProperty = fields.stream().filter(field -> field.getMutableProperty().getName().equals(p.getName())).findFirst();
 					// Rollback: we remove the last value of this field from the new state
 					final GenericTracedObject tracedObject = (GenericTracedObject) exeToTraced.get(o);
 					final GenericDimension dimension = tracedObject.getAllDimensions().stream()
-							.filter(d -> d.getDynamicProperty() == p)
+							.filter(d -> d.getDynamicProperty().getName().equals(p.getName()))
 							.findFirst().orElse(null);
 					if (dimension != null) {
 						final List<GenericValue> values = dimension.getValues();
-						final Object pValue = o.eGet(p);
-						if (pValue instanceof EObject) {
-							addNewObjectToStateIfDynamic((EObject) pValue, newState);
+						if(dynamicProperty.isPresent()) {
+							final Object pValue = dynamicProperty.get().getValue();
+							if (pValue instanceof EObject) {
+								addNewObjectToStateIfDynamic((EObject) pValue, newState);
+							}
 						}
 						final GenericValue lastValue = values.isEmpty() ? null : values.get(values.size() - 1);
 						if (lastValue != null) {
@@ -281,6 +408,7 @@ public class GenericTraceConstructor implements ITraceConstructor {
 				// If it changed we must rollback the last values from the copied state, and add new values as well
 				else if (modelChange instanceof PotentialCollectionFieldModelChange) {
 					final EStructuralFeature p = ((PotentialCollectionFieldModelChange) modelChange).getChangedField();
+					Optional<MutableField> dynamicProperty = fields.stream().filter(field -> field.getMutableProperty().getName().equals(p.getName())).findFirst();
 					final GenericTracedObject tracedObject = (GenericTracedObject) exeToTraced.get(o);
 					// We compare the last collection in the value sequence, and the current one in the potentially changed object
 					final GenericDimension dimension = tracedObject.getAllDimensions().stream()
@@ -289,7 +417,10 @@ public class GenericTraceConstructor implements ITraceConstructor {
 					if (dimension != null) {
 						final List<GenericValue> dimensionValues = dimension.getValues();
 						final ManyReferenceValue lastValue = (ManyReferenceValue) dimensionValues.get(dimensionValues.size() - 1);
-						final List<EObject> values = (List<EObject>) o.eGet(p);
+						List<EObject> values = new ArrayList<>();
+						if(dynamicProperty.isPresent()) {
+							values = (List<EObject>) dynamicProperty.get().getValue();
+						}
 						for (EObject eObj : values) {
 							addNewObjectToStateIfDynamic(eObj, newState);
 						}

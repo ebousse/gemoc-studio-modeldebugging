@@ -19,7 +19,6 @@ import org.eclipse.emf.ecore.EObject
 import org.eclipse.gemoc.dsl.debug.ide.event.IDSLDebugEventProcessor
 import org.eclipse.gemoc.executionframework.engine.core.EngineStoppedException
 import org.eclipse.gemoc.trace.commons.model.trace.Dimension
-import org.eclipse.gemoc.trace.commons.model.trace.MSE
 import org.eclipse.gemoc.trace.commons.model.trace.State
 import org.eclipse.gemoc.trace.commons.model.trace.Step
 import org.eclipse.gemoc.trace.commons.model.trace.TracedObject
@@ -29,59 +28,33 @@ import org.eclipse.gemoc.trace.gemoc.api.ITraceExplorer
 import org.eclipse.gemoc.trace.gemoc.api.ITraceViewListener
 import org.eclipse.gemoc.xdsmlframework.api.core.IExecutionEngine
 import org.eclipse.jface.dialogs.ErrorDialog
-import org.eclipse.xtext.naming.QualifiedName
 
-public class OmniscientGenericSequentialModelDebugger extends GenericSequentialModelDebugger implements ITraceViewListener {
+class OmniscientGenericSequentialModelDebugger extends GenericSequentialModelDebugger implements ITraceViewListener {
 
-	private var ITraceExplorer<Step<?>, State<?, ?>, TracedObject<?>, Dimension<?>, Value<?>> traceExplorer
+	var ITraceExplorer<Step<?>, State<?, ?>, TracedObject<?>, Dimension<?>, Value<?>> traceExplorer
 
-	private var steppingOverStackFrameIndex = -1
+	var steppingOverStackFrameIndex = -1
 
-	private var steppingReturnStackFrameIndex = -1
+	var steppingReturnStackFrameIndex = -1
 
-	private val List<EObject> callerStack = new ArrayList
+	val List<EObject> callerStack = new ArrayList
 
-	private val List<Step<?>> previousCallStack = new ArrayList
+	val List<Step<?>> previousCallStack = new ArrayList
 
-	new(IDSLDebugEventProcessor target, IExecutionEngine engine) {
+	new(IDSLDebugEventProcessor target, IExecutionEngine<?> engine) {
 		super(target, engine)
 	}
 
-	def private MSE getMSEFromStep(Step<?> step) {
-		val mseOccurrence = step.mseoccurrence
-		if (mseOccurrence === null) {
-			val container = step.eContainer
-			if (container instanceof Step<?>) {
-				val parentStep = container as Step<?>
-				val parentMseOccurrence = parentStep.mseoccurrence
-				if (parentMseOccurrence === null) {
-					throw new IllegalStateException(
-						"A step without MSEOccurrence cannot be contained in a step without MSEOccurrence")
-				} else {
-					return parentMseOccurrence.mse
-				}
-			} else {
-				throw new IllegalStateException("A step without MSEOccurrence has to be contained in a step")
-			}
-		} else {
-			return mseOccurrence.mse
-		}
+	def private void pushStackFrame(String threadName, Step<?> step, EObject specificInstruction) {
+		val info = getMSEFrameInformation(step);
+		pushStackFrame(threadName, info.prettyLabel, info.caller, specificInstruction)
+		callerStack.add(0, info.caller)
 	}
-
+	
 	def private void pushStackFrame(String threadName, Step<?> step) {
-		var MSE mse = getMSEFromStep(step)
-		var EObject caller = mse.caller
-		val QualifiedName qname = nameprovider.getFullyQualifiedName(caller)
-		val String objectName = if(qname !== null) qname.toString() else caller.toString()
-		val String opName = if (step.mseoccurrence === null) {
-				mse.action?.name + "_implicitStep"
-			} else {
-				mse.action?.name
-			}
-		val String callerType = caller.eClass().getName()
-		val String prettyName = "(" + callerType + ") " + objectName + " -> " + opName + "()"
-		pushStackFrame(threadName, prettyName, caller, caller)
-		callerStack.add(0, caller)
+		val info = getMSEFrameInformation(step);
+		pushStackFrame(threadName, info.prettyLabel, info.caller, info.caller)
+		callerStack.add(0, info.caller)
 	}
 
 	override void popStackFrame(String threadName) {
@@ -89,7 +62,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		callerStack.remove(0)
 	}
 
-	override void aboutToExecuteStep(IExecutionEngine executionEngine, Step<?> step) {
+	override void aboutToExecuteStep(IExecutionEngine<?> executionEngine, Step<?> step) {
 		val mseOccurrence = step.mseoccurrence
 		if (mseOccurrence !== null) {
 			val boolean shallContinue = control(threadName, step)
@@ -99,7 +72,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void resume() {
+	override void resume() {
 		if (!executionTerminated) {
 			if (traceExplorer.inReplayMode) {
 				traceExplorer.loadLastState
@@ -108,7 +81,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void resume(String threadName) {
+	override void resume(String threadName) {
 		if (!executionTerminated) {
 			if (traceExplorer.inReplayMode) {
 				traceExplorer.loadLastState
@@ -117,22 +90,22 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void terminate() {
+	override void terminate() {
 		super.terminate()
 		Activator.^default.debuggerSupplier = [|null]
 	}
 
 	override protected void setupStepOverPredicateBreak() {
 		if (steppingOverStackFrameIndex != -1) {
-			val seqEngine = engine as IExecutionEngine
+			val seqEngine = engine as IExecutionEngine<?>
 			val stack = traceExplorer.callStack
 			val idx = stack.size - steppingOverStackFrameIndex - 1
 			// We add a future break as soon as the step is over
-			addPredicateBreak(new BiPredicate<IExecutionEngine, Step<?>>() {
+			addPredicateBreak(new BiPredicate<IExecutionEngine<?>, Step<?>>() {
 				// The operation we want to step over
-				private Step<?> steppedOver = stack.get(idx)
+				Step<?> steppedOver = stack.get(idx)
 
-				override test(IExecutionEngine t, Step<?> u) {
+				override test(IExecutionEngine<?> t, Step<?> u) {
 					return !seqEngine.getCurrentStack().contains(steppedOver)
 				}
 			})
@@ -142,7 +115,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void stepInto(String threadName) {
+	override void stepInto(String threadName) {
 		if (traceExplorer.inReplayMode || executionTerminated) {
 			if (!traceExplorer.stepInto && !executionTerminated) {
 				traceExplorer.loadLastState
@@ -153,7 +126,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void stepOver(String threadName) {
+	override void stepOver(String threadName) {
 		if (traceExplorer.inReplayMode || executionTerminated) {
 			if (!traceExplorer.stepOver && !executionTerminated) {
 				steppingOverStackFrameIndex = nbStackFrames - 1
@@ -167,13 +140,13 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 
 	override protected void setupStepReturnPredicateBreak() {
 		if (steppingReturnStackFrameIndex != -1) {
-			val seqEngine = engine as IExecutionEngine
+			val seqEngine = engine as IExecutionEngine<?>
 			val stack = traceExplorer.callStack
 			val idx = stack.size - steppingReturnStackFrameIndex - 1
-			addPredicateBreak(new BiPredicate<IExecutionEngine, Step<?>>() {
-				private Step<?> steppedReturn = stack.get(idx)
+			addPredicateBreak(new BiPredicate<IExecutionEngine<?>, Step<?>>() {
+				Step<?> steppedReturn = stack.get(idx)
 
-				override test(IExecutionEngine t, Step<?> u) {
+				override test(IExecutionEngine<?> t, Step<?> u) {
 					return !seqEngine.getCurrentStack().contains(steppedReturn)
 				}
 			})
@@ -183,7 +156,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	override public void stepReturn(String threadName) {
+	override void stepReturn(String threadName) {
 		if (traceExplorer.inReplayMode || executionTerminated) {
 			if (!traceExplorer.stepReturn && !executionTerminated) {
 				steppingReturnStackFrameIndex = nbStackFrames - 2
@@ -195,27 +168,27 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		}
 	}
 
-	def public void stepBackInto() {
+	def void stepBackInto() {
 		traceExplorer.stepBackInto
 	}
 
-	def public void stepBackOver() {
+	def void stepBackOver() {
 		traceExplorer.stepBackOver
 	}
 
-	def public void stepBackOut() {
+	def void stepBackOut() {
 		traceExplorer.stepBackOut
 	}
 
-	def public boolean canStepBackInto() {
+	def boolean canStepBackInto() {
 		return traceExplorer.canStepBackInto
 	}
 
-	def public boolean canStepBackOver() {
+	def boolean canStepBackOver() {
 		return traceExplorer.canStepBackOver
 	}
 
-	def public boolean canStepBackOut() {
+	def boolean canStepBackOut() {
 		return traceExplorer.canStepBackOut
 	}
 
@@ -228,7 +201,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 //			}
 //		});
 //	}
-	override public validateVariableValue(String threadName, String variableName, String value) {
+	override validateVariableValue(String threadName, String variableName, String value) {
 		if (traceExplorer.inReplayMode) {
 			ErrorDialog.openError(null, "Illegal variable value set",
 				"Cannot set the value of a variable when in replay mode",
@@ -238,7 +211,7 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		return super.validateVariableValue(threadName, variableName, value)
 	}
 
-	override void engineStarted(IExecutionEngine executionEngine) {
+	override void engineStarted(IExecutionEngine<?> executionEngine) {
 		val Activator activator = Activator.getDefault()
 		activator.debuggerSupplier = [this]
 		super.engineStarted(executionEngine)
@@ -248,12 +221,12 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		traceExplorer.registerCommand(this, [|update])
 	}
 
-	override void engineAboutToStop(IExecutionEngine engine) {
+	override void engineAboutToStop(IExecutionEngine<?> engine) {
 		traceExplorer.loadLastState
 		super.engineAboutToStop(engine)
 	}
 
-	override void engineStopped(IExecutionEngine executionEngine) {
+	override void engineStopped(IExecutionEngine<?> executionEngine) {
 		val Activator activator = Activator.getDefault()
 		activator.debuggerSupplier = null
 		super.engineStopped(executionEngine)
@@ -268,11 +241,26 @@ public class OmniscientGenericSequentialModelDebugger extends GenericSequentialM
 		for (var j = i; j < previousCallStack.size; j++) {
 			popStackFrame(threadName)
 		}
-		for (var j = i; j < traceExplorer.callStack.size; j++) {
-			pushStackFrame(threadName, traceExplorer.callStack.get(j))
-		}
-		if (!callerStack.empty) {
-			setCurrentInstruction(threadName, callerStack.get(0))
+		val callStackSize = traceExplorer.callStack.size
+		for (var j = i; j < callStackSize; j++) {
+			if (j>0) {
+				// update parent frame current instruction before pushing new frame
+				// this make sure to better distinguish context and current instruction
+				val info = getMSEFrameInformation(traceExplorer.callStack.get(j))
+				setCurrentInstruction(threadName, info.caller)
+			}
+			if(j < callStackSize -1){
+				val childStep = traceExplorer.callStack.get(j+1)
+				val childCaller = getMSEFrameInformation(childStep).caller;
+				pushStackFrame(threadName, traceExplorer.callStack.get(j), childCaller)
+			
+			} else {	
+				pushStackFrame(threadName, traceExplorer.callStack.get(j))
+			}
+			
+			if (!callerStack.empty) {
+				setCurrentInstruction(threadName, callerStack.get(0))
+			}
 		}
 		previousCallStack.clear
 		previousCallStack.addAll(traceExplorer.callStack)

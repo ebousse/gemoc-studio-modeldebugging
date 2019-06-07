@@ -2,7 +2,7 @@ Manifest-Version: 1.0
 Bundle-ManifestVersion: 2
 Bundle-Name: Utils
 Bundle-SymbolicName: org.eclipse.gemoc.xdsmlframework.ui.utils
-Bundle-Version: 3.0.0.qualifier
+Bundle-Version: 4.0.0.qualifier
 Bundle-Activator: org.eclipse.gemoc.xdsmlframework.ui.utils.Activator
 Require-Bundle: org.eclipse.core.runtime,
  org.eclipse.emf.codegen.ecore.ui;bundle-version="2.8.0",
@@ -15,3 +15,4 @@ Bundle-RequiredExecutionEnvironment: JavaSE-1.8
 Bundle-ActivationPolicy: lazy
 Export-Package: org.eclipse.gemoc.xdsmlframework.ui.utils,
  org.eclipse.gemoc.xdsmlframework.ui.utils.dialogs
+Automatic-Module-Name: org.eclipse.gemoc.xdsmlframework.ui.utils

@@ -12,6 +12,7 @@ package org.eclipse.gemoc.trace.gemoc.traceaddon;
 
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import org.eclipse.emf.common.util.BasicEList;
@@ -20,19 +21,26 @@ import org.eclipse.emf.ecore.resource.Resource;
 import org.eclipse.emf.transaction.RecordingCommand;
 import org.eclipse.emf.transaction.TransactionalEditingDomain;
 import org.eclipse.emf.transaction.util.TransactionUtil;
+import org.eclipse.gemoc.executionframework.debugger.IDynamicPartAccessor;
+import org.eclipse.gemoc.executionframework.debugger.MutableField;
 import org.eclipse.gemoc.executionframework.engine.core.CommandExecution;
-
 import org.eclipse.gemoc.trace.commons.model.generictrace.BooleanAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.DoubleAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.DoubleObjectAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericDimension;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericState;
 import org.eclipse.gemoc.trace.commons.model.generictrace.GenericTracedObject;
 import org.eclipse.gemoc.trace.commons.model.generictrace.IntegerAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.IntegerObjectAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.LongAttributeValue;
+import org.eclipse.gemoc.trace.commons.model.generictrace.LongObjectAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.ManyReferenceValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.SingleReferenceValue;
 import org.eclipse.gemoc.trace.commons.model.generictrace.StringAttributeValue;
 import org.eclipse.gemoc.trace.commons.model.trace.State;
 import org.eclipse.gemoc.trace.commons.model.trace.TracedObject;
+import org.eclipse.gemoc.trace.gemoc.Activator;
 import org.eclipse.gemoc.trace.gemoc.api.IStateManager;
 
 public class GenericStateManager implements IStateManager<State<?, ?>> {
@@ -41,9 +49,12 @@ public class GenericStateManager implements IStateManager<State<?, ?>> {
 	
 	private final Map<TracedObject<?>, EObject> tracedToExe;
 	
-	public GenericStateManager(Resource modelResource, Map<TracedObject<?>, EObject> tracedToExe) {
+	IDynamicPartAccessor dynamicPartAccessor;
+	
+	public GenericStateManager(Resource modelResource, Map<TracedObject<?>, EObject> tracedToExe, IDynamicPartAccessor dynamicPartAccessor) {
 		this.modelResource = modelResource;
 		this.tracedToExe = tracedToExe;
+		this.dynamicPartAccessor = dynamicPartAccessor;
 	}
 	
 	@Override
@@ -71,26 +82,44 @@ public class GenericStateManager implements IStateManager<State<?, ?>> {
 			GenericDimension dimension = (GenericDimension) v.eContainer();
 			GenericTracedObject tracedObject = (GenericTracedObject) dimension.eContainer();
 			EObject originalObject = tracedObject.getOriginalObject();
+			List<MutableField> fields = dynamicPartAccessor.extractMutableField(originalObject);
+			Optional<MutableField> dynamicProperty = fields.stream().filter(field -> field.getMutableProperty().getName().equals(dimension.getDynamicProperty().getName())).findFirst();
 			if (originalObject == null) {
 				originalObject = tracedToExe.get(tracedObject);
 			}
-			if (v instanceof GenericAttributeValue) {
-				if (v instanceof IntegerAttributeValue) {
-					originalObject.eSet(dimension.getDynamicProperty(), ((IntegerAttributeValue) v).getAttributeValue());
-				} else if (v instanceof BooleanAttributeValue) {
-					originalObject.eSet(dimension.getDynamicProperty(), ((BooleanAttributeValue) v).isAttributeValue());
-				} else {
-					originalObject.eSet(dimension.getDynamicProperty(), ((StringAttributeValue) v).getAttributeValue());
-				}
-			} else {
-				if (v instanceof SingleReferenceValue) {
-					final EObject refVal = ((SingleReferenceValue) v).getReferenceValue();
-					if (refVal instanceof GenericTracedObject) {
-						final EObject exe = tracedToExe.get(refVal);
-						originalObject.eSet(dimension.getDynamicProperty(), exe);
+			
+			if(dynamicProperty.isPresent()) {
+				if (v instanceof GenericAttributeValue) {
+					if (v instanceof IntegerAttributeValue) {
+						dynamicProperty.get().setValue(((IntegerAttributeValue) v).getAttributeValue());
+					} else if (v instanceof BooleanAttributeValue) {
+						dynamicProperty.get().setValue(((BooleanAttributeValue) v).isAttributeValue());
+					} else if( v instanceof StringAttributeValue){
+						dynamicProperty.get().setValue(((StringAttributeValue) v).getAttributeValue());
+					} else if( v instanceof DoubleAttributeValue){
+						dynamicProperty.get().setValue(((DoubleAttributeValue) v).getAttributeValue());
+					} else if( v instanceof LongAttributeValue){
+						dynamicProperty.get().setValue(((LongAttributeValue) v).getAttributeValue());
+					} else	if (v instanceof IntegerObjectAttributeValue) {
+							dynamicProperty.get().setValue(((IntegerObjectAttributeValue) v).getAttributeValue());
+					} else if( v instanceof DoubleObjectAttributeValue){
+						dynamicProperty.get().setValue(((DoubleObjectAttributeValue) v).getAttributeValue());
+					} else if( v instanceof LongObjectAttributeValue){
+						dynamicProperty.get().setValue(((LongObjectAttributeValue) v).getAttributeValue());
 					} else {
-						originalObject.eSet(dimension.getDynamicProperty(), refVal);
+						//v.eContainingFeature()
+						Activator.error("eType "+v.eClass().getName()+" not supported yet (used by "+v.eContainingFeature().getName()+" of "+v.eContainingFeature().eContainer()+ ");\n "
+								+ "Please use another type in your RTD or consider to contribute to GEMOC framework", 
+								new java.lang.UnsupportedOperationException("eType "+v.eClass().getName()+" not supported yet (used by "+v.eContainingFeature().getName()+" of "+v.eContainingFeature().eContainer()+ ")"));
 					}
+				} else if (v instanceof SingleReferenceValue) {
+						final EObject refVal = ((SingleReferenceValue) v).getReferenceValue();
+						if (refVal instanceof GenericTracedObject) {
+							final EObject exe = tracedToExe.get(refVal);
+							dynamicProperty.get().setValue(exe);
+						} else {
+							dynamicProperty.get().setValue(refVal);
+						}
 				} else {
 					final List<EObject> values = new BasicEList<EObject>();
 					values.addAll(((ManyReferenceValue) v).getReferenceValues().stream().map(refVal -> {
@@ -100,7 +129,7 @@ public class GenericStateManager implements IStateManager<State<?, ?>> {
 							return refVal;
 						}
 					}).collect(Collectors.toList()));
-					originalObject.eSet(dimension.getDynamicProperty(), values);
+					dynamicProperty.get().setValue(values);
 				}
 			}
 		});

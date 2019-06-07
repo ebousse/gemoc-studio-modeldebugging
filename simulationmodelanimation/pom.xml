@@ -13,7 +13,7 @@
 
 	<groupId>DSLDebugger</groupId>
 	<artifactId>org.eclipse.gemoc.dsl.debug.parent</artifactId>
-	<version>3.0.0-SNAPSHOT</version>
+	<version>3.0.1-SNAPSHOT</version>
 	<packaging>pom</packaging>
 
 	<name>DSL Debugger Parent</name>
@@ -27,7 +27,7 @@
 	</licenses>
 
 	<properties>
-		<tycho-version>1.0.0</tycho-version>
+		<tycho-version>1.2.0</tycho-version>
 		<tycho.scmUrl>scm:git:https://github.com/SiriusLab/ModelDebugging.git</tycho.scmUrl>
 	</properties>
 
